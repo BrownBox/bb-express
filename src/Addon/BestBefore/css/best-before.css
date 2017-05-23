@@ -1,0 +1,47 @@
+.highlighted-value {
+    border-bottom: 1px dotted #999;
+    font-weight: bold;
+}
+
+._post_meta_bbx_best_before_or {
+    margin-bottom: 0 !important;
+}
+
+._post_meta_bbx_best_before_click_tiles,
+._post_meta_bbx_best_before_or .or {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.click-tiles {
+
+}
+
+.click-tiles .click-tile {
+    display: inline-block;
+    float: left;
+    margin-right: 0.5rem;
+    border: 1px solid #d1d1d1;
+    padding: 0.5rem;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+    background-color: #f3f3f3;
+    text-align: center ;
+
+}
+
+.click-tiles .click-tile a {
+    font-weight: bold;
+    text-decoration: none;
+    color: #777;
+    outline: none;
+}
+
+.click-tiles .click-tile a:focus {
+    outline: none;
+}
+
+.click-tiles .click-tile:hover {
+    background-color: #eaeaea;
+}
