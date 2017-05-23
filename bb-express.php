@@ -3,7 +3,7 @@
 Plugin Name: BB Express
 Plugin URI: http://brownbox.net.au
 Description: Brown Box Express
-Version: 0.2
+Version: 0.3
 Author: Brown Box
 Author URI: http://brownbox.net.au
 License: GPL2
@@ -67,18 +67,20 @@ function bb_express_autoload( $class ) {
 }
 
 /**
- * Hack to get the code going until the contrete way of launching has been developed
+ * Hack to get the code going until the concrete way of launching has been developed
  *
  * @todo fix this up
  */
 function bb_express_run() {
+    require_once(trailingslashit(BB_EXPRESS_SRC_PATH).'Updates.php');
+    if (is_admin()) {
+        new \BrownBox\Express\Updates(__FILE__, 'BrownBox', 'bb-express');
+    }
 
     $bb_express = new \BrownBox\Express\Express();
-
-    // $bb_express->get_all_addons();
 }
 
-add_action( 'init', 'bb_express_run' );
+add_action('init', 'bb_express_run');
 
 // @todo write functionality for global settings
 // $settings = new BrownBox\Express\Settings();
