@@ -523,11 +523,16 @@ function bbx_track_click(post_id) {
 
         $grouped_users = array();
         if ($user_id) {
-            // @todo filter by user
-            $vt_users = $this->get_user_by($user_id, 'user_id', false);
+            $vt_users = array();
+            $tmp_users = $this->get_user_by($user_id, 'user_id', false);
+            foreach ($tmp_users as $tmp_user) {
+                $vt_users += $this->get_user_by($tmp_user->client_id, 'client_id', false);
+            }
         } else {
             $vt_users = $this->get_users();
         }
+        usort($vt_users, array($this, 'sort_users_by_created'));
+
         foreach ($vt_users as $vt_user) {
             if (!empty($vt_user->user_id)) {
                 $wp_user = new \WP_User($vt_user->user_id);
@@ -576,6 +581,10 @@ function bbx_track_click(post_id) {
                 $view_user_id = $view_user->ID;
             }
 
+            if ($user_id && $view_user_id != $user_id) { // Make sure we're only showing entries for the current user where relevant
+                continue;
+            }
+
             $activities[] = array(
                     'date' => $result->created_at,
                     'user' => $user_name,
@@ -586,15 +595,6 @@ function bbx_track_click(post_id) {
             );
         }
         return $activities;
-    }
-
-    /**
-     * Get all users from tracking table
-     * @return array
-     */
-    private function get_users() {
-        global $wpdb;
-        return $wpdb->get_results('SELECT * FROM '.$wpdb->prefix.'bbx_view_tracking_users');
     }
 
     /**
@@ -675,6 +675,15 @@ function bbx_track_click(post_id) {
     }
 
     /**
+     * Get all users from tracking table
+     * @return array
+     */
+    private function get_users() {
+        global $wpdb;
+        return $wpdb->get_results('SELECT * FROM '.$wpdb->prefix.'bbx_view_tracking_users');
+    }
+
+    /**
      * Get View Tracking user record by the specified field
      * @param string $value
      * @param string $field Optional. Valid values 'client_id', 'email', 'user_id'. Default 'client_id'.
@@ -739,5 +748,9 @@ function bbx_track_click(post_id) {
                 'client_id' => $this->get_client_id(),
         );
         return $wpdb->update($wpdb->prefix.'bbx_view_tracking_users', $data, $where, array('%d', '%s'), array('%s'));
+    }
+
+    private function sort_users_by_created($a, $b) {
+        return $a->created_by > $b->created_by ? 1 : -1;
     }
 }
