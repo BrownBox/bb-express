@@ -184,7 +184,6 @@ class ViewTracking extends Base\Addon implements Interfaces\Addon {
 
         add_action('wp', array($this, 'frontend_hooks'));
         add_action('wp', array($this, 'conversion_cookie'));
-        add_action('plugins_loaded', array($this, 'ajax_hooks'));
         add_action('gform_after_submission', array($this, 'track_user'), 10, 2);
 
         // AJAX hooks
