@@ -683,7 +683,7 @@ function bbx_track_click(post_id) {
      */
     public function get_user_by($value, $field = 'client_id', $singular = true) {
         global $wpdb;
-        $query = 'SELECT * FROM '.$wpdb->prefix.'bbx_view_tracking_users WHERE '.$field.' = %s ORDER BY date_created DESC';
+        $query = 'SELECT * FROM '.$wpdb->prefix.'bbx_view_tracking_users WHERE '.$field.' = %s ORDER BY created_at DESC';
         $query = $wpdb->prepare($query, $value);
         return $singular ? $wpdb->get_row($query) : $wpdb->get_results($query);
     }
