@@ -116,7 +116,7 @@ class DateTime {
 	 * Get DateTime object for specified date/time
 	 * @param string $datetime
 	 * @param DateTimeZone $timezone
-	 * @return DateTime
+	 * @return \DateTime
 	 */
 	public static function get_datetime($datetime = '', \DateTimeZone $timezone = null) {
 	    if (empty($datetime)) {
