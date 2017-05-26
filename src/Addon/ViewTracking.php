@@ -655,12 +655,14 @@ function bbx_track_click(post_id) {
                 } elseif ($existing_user->user_id != $user->ID) {
                     $insert = true;
                 }
-
-                GFAPI::update_entry_property($entry['id'], 'created_by', $user_id);
-                $entry['created_by'] = $user_id;
             }
         } else {
             $insert = true;
+        }
+
+        if (empty($entry['created_by']) && $user instanceof \WP_User) {
+            GFAPI::update_entry_property($entry['id'], 'created_by', $user->ID);
+            $entry['created_by'] = $user->ID;
         }
 
         if ($insert) {
