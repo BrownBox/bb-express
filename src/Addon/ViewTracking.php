@@ -551,12 +551,15 @@ function bbx_track_click(post_id) {
                     $insert = true;
                 }
             }
-            if ($user instanceof WP_User) {
+            if ($user instanceof \WP_User) {
                 if (empty($existing_user->user_id)) {
                     $update = true;
                 } elseif ($existing_user->user_id != $user->ID) {
                     $insert = true;
                 }
+
+                GFAPI::update_entry_property($entry['id'], 'created_by', $user_id);
+                $entry['created_by'] = $user_id;
             }
         } else {
             $insert = true;
@@ -625,7 +628,7 @@ function bbx_track_click(post_id) {
 
         global $wpdb;
         $data = array();
-        if ($user instanceof WP_User) {
+        if ($user instanceof \WP_User) {
             $data['user_id'] = $user->ID;
         }
         if (!empty($email)) {
