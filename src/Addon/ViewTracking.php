@@ -186,6 +186,10 @@ class ViewTracking extends Base\Addon implements Interfaces\Addon {
         add_action('wp', array($this, 'conversion_cookie'));
         add_action('gform_after_submission', array($this, 'track_user'), 10, 2);
 
+        if (is_admin()) {
+            add_filter('bbconnect_get_recent_activity', array($this, 'recent_activity'), 10, 2);
+        }
+
         // AJAX hooks
         add_action('wp_ajax_bbx_track_view', array($this, 'ajax_track_view'));
         add_action('wp_ajax_nopriv_bbx_track_view', array($this, 'ajax_track_view'));
@@ -501,6 +505,96 @@ function bbx_track_click(post_id) {
         $result = $gateway->insert($row_data);
 
         return $result;
+    }
+
+    /**
+     * Get list of recent activity to be displayed in Connexions Activity Log
+     * @param array $activities
+     * @param integer $user_id
+     * @return array
+     */
+    public function recent_activity(array $activities, $user_id) {
+        $gateway = new \BrownBox\Express\Addon\ViewTracking\ViewTrackingDB();
+        $args = array(
+                'orderby' => 'created_at',
+                'order' => 'DESC',
+                'limit' => 500,
+        );
+
+        $grouped_users = array();
+        if ($user_id) {
+            // @todo filter by user
+            $vt_users = $this->get_user_by($user_id, 'user_id', false);
+        } else {
+            $vt_users = $this->get_users();
+        }
+        foreach ($vt_users as $vt_user) {
+            if (!empty($vt_user->user_id)) {
+                $wp_user = new \WP_User($vt_user->user_id);
+            } else {
+                $wp_user = get_user_by('email', $vt_user->email);
+            }
+            $grouped_users[$vt_user->client_id][] = array(
+                    'date' => $vt_user->created_at,
+                    'user' => $wp_user,
+            );
+        }
+
+        $results = $gateway->get_rows($args);
+
+        foreach ($results as $result) {
+            switch ($result->view_type) {
+                case self::RECORD_TYPE_FULL:
+                    $post_type = get_post_type_object(get_post_type($result->item_id))->labels->singular_name;
+                    $title = $post_type.': '.get_the_title($result->item_id);
+                    $description = '<a href="'.get_the_permalink($result->item_id).'" target="_blank">View '.$post_type.'</a>';
+                    break;
+                default: // Don't include other types
+                    continue(2);
+                    break;
+            }
+
+            if (count($grouped_users[$result->client_id]) == 0) {
+                $user_name = 'Anonymous User';
+                $view_user_id = null;
+            } elseif (count($grouped_users[$result->client_id]) == 1) {
+                $view_user = $grouped_users[$result->client_id][0]['user'];
+                $user_name = $view_user->display_name;
+                $view_user_id = $view_user->ID;
+            } else { // Multiple matches - find the best match
+                foreach ($grouped_users[$result->client_id] as $tmp_user) {
+                    if (!isset($view_user)) { // If it's the earliest record we've got, go with that until we find a closer match
+                        $view_user = $tmp_user['user'];
+                    }
+                    if (strtotime($result->created_at) < strtotime($tmp_user['date'])) { // User record was created after this view, we've gone too far
+                        break;
+                    }
+                    // User record was created before view, so it's closer than any other matches we may have found previously
+                    $view_user = $tmp_user['user'];
+                }
+                $user_name = $view_user->display_name;
+                $view_user_id = $view_user->ID;
+            }
+
+            $activities[] = array(
+                    'date' => $result->created_at,
+                    'user' => $user_name,
+                    'user_id' => $view_user_id,
+                    'title' => $title,
+                    'details' => $description,
+                    'type' => 'activity',
+            );
+        }
+        return $activities;
+    }
+
+    /**
+     * Get all users from tracking table
+     * @return array
+     */
+    private function get_users() {
+        global $wpdb;
+        return $wpdb->get_results('SELECT * FROM '.$wpdb->prefix.'bbx_view_tracking_users');
     }
 
     /**
