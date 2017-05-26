@@ -115,7 +115,7 @@ class ViewTracking extends Base\Addon implements Interfaces\Addon {
 
         $this->_name = __('View Tracking', 'bb');
         $this->_description = __('Track views of various posts.', 'bb');
-        $this->_current_version = '1.1';
+        $this->_current_version = '1.2';
         $this->_referer = $_SERVER['HTTP_REFERER'];
         $this->_ip_address = $_SERVER['REMOTE_ADDR'];
         $this->_request_reference = md5(time().rand(1, 10000).$this->_ip_address);
@@ -174,6 +174,9 @@ class ViewTracking extends Base\Addon implements Interfaces\Addon {
                             ) CHARACTER SET utf8 COLLATE utf8_general_ci;",
                         $wpdb->prefix.'bbx_view_tracking' => "ALTER TABLE ".$wpdb->prefix."bbx_view_tracking CHANGE post_id item_id BIGINT(20);",
                         $wpdb->prefix.'bbx_view_tracking_archive' => "ALTER TABLE ".$wpdb->prefix."bbx_view_tracking_archive CHANGE post_id item_id BIGINT(20);",
+                ),
+                '1.2' => array(
+                        $wpdb->prefix.'bbx_view_tracking' => "UPDATE ".$wpdb->prefix."bbx_view_tracking SET created_at = DATE_ADD(created_at, INTERVAL 10 HOUR);",
                 ),
         );
         $this->set_database_tables_queries($queries);
@@ -485,6 +488,7 @@ function bbx_track_click(post_id) {
         }
         $gateway = new ViewTracking\ViewTrackingDB();
 
+        $now = Helper\DateTime::get_current_datetime();
         $row_data = array(
                 'request_reference' => $this->_request_reference,
                 'item_id'           => $post_id,
@@ -492,6 +496,7 @@ function bbx_track_click(post_id) {
                 'referrer'          => $referrer,
                 'session_id'        => session_id(),
                 'client_id'         => $this->get_client_id(),
+                'created_at'        => $now->format('Y-m-d H:i:s'),
         );
 
         $result = $gateway->insert($row_data);
