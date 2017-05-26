@@ -178,6 +178,55 @@ abstract class DB {
     }
 
     /**
+     * Get some rows from the table
+     * @param array $args Optional
+     * @return array
+     */
+    public function get_rows($args) {
+        $defaults = array(
+                'number'        => 20,
+                'offset'        => 0,
+                'orderby'       => $this->primary_key,
+                'order'         => 'ASC',
+                'filter'        => array(),
+        );
+
+        $args = wp_parse_args($args, $defaults);
+
+        $where_sql = ' WHERE 1 = 1';
+        $order_sql = $limit_sql = '';
+        $where_vars = array();
+
+        foreach ($args['filter'] as $field => $value) {
+            if (is_numeric($value)) {
+                if (is_int($value)) {
+                    $format = '%f';
+                } else {
+                    $format = '%d';
+                }
+            } else {
+                $format = '%s';
+            }
+            $where_sql .= ' AND '.$field.' = '.$format;
+            $where_vars[] = $value;
+        }
+
+        if (!empty($args['orderby'])) {
+            $order_sql = ' ORDER BY '.$args['orderby'].' '.$args['order'];
+        }
+
+        if (is_numeric($args['limit']) && $args['limit'] > 0) {
+            $limit_sql = ' LIMIT '.$args['limit'];
+            if (is_numeric($args['offset']) && $args['offset'] > 0) {
+                $limit_sql = ' OFFSET '.$args['offset'];
+            }
+        }
+
+        global $wpdb;
+        return $wpdb->get_results($wpdb->prepare('SELECT * FROM '.$this->table_name.$where_sql.$order_sql.$limit_sql, $where_vars));
+    }
+
+    /**
      * Insert a new row
      *
      * @access  public
