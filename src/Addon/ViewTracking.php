@@ -405,7 +405,7 @@ function bbx_track_click(post_id) {
      * @access public
      */
     public function get_entries() {
-        $gateway = new \BrownBox\Express\Addon\ViewTracking\ViewTrackingDB();
+        $gateway = new ViewTracking\ViewTrackingDB();
 
         $result = $gateway->get_all();
 
@@ -413,7 +413,7 @@ function bbx_track_click(post_id) {
     }
 
     public function get_post_views($post_id) {
-        $gateway = new \BrownBox\Express\Addon\ViewTracking\ViewTrackingDB();
+        $gateway = new ViewTracking\ViewTrackingDB();
         $results = $gateway->get_by('item_id', $post_id);
         $views = array(
                 'week' => array(),
@@ -514,7 +514,7 @@ function bbx_track_click(post_id) {
      * @return array
      */
     public function recent_activity(array $activities, $user_id) {
-        $gateway = new \BrownBox\Express\Addon\ViewTracking\ViewTrackingDB();
+        $gateway = new ViewTracking\ViewTrackingDB();
         $args = array(
                 'orderby' => 'created_at',
                 'order' => 'DESC',
@@ -661,7 +661,7 @@ function bbx_track_click(post_id) {
         }
 
         if (empty($entry['created_by']) && $user instanceof \WP_User) {
-            GFAPI::update_entry_property($entry['id'], 'created_by', $user->ID);
+            \GFAPI::update_entry_property($entry['id'], 'created_by', $user->ID);
             $entry['created_by'] = $user->ID;
         }
 
