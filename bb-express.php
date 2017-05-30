@@ -80,7 +80,7 @@ function bb_express_run() {
     $bb_express = new \BrownBox\Express\Express();
 }
 
-add_action('init', 'bb_express_run');
+add_action('init', 'bb_express_run', 1);
 
 // @todo write functionality for global settings
 // $settings = new BrownBox\Express\Settings();
