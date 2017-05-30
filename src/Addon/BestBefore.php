@@ -13,10 +13,7 @@ class BestBefore extends Base\Addon implements Interfaces\Addon {
 	 * @var array
 	 * @access private
 	 */
-	protected $_post_types_to_covered = array(
-    		'post',
-    		'page',
-	);
+	private $_post_types_to_cover = array();
 
 	/**
      * Class constructor
@@ -24,11 +21,15 @@ class BestBefore extends Base\Addon implements Interfaces\Addon {
     public function __construct() {
         $this->_name = __( 'Best Before', 'bb' );
         $this->_description = __( 'Introduce expiry dates for posts', 'bb' );
-        $this->_current_version = '1.0';
+        $this->_current_version = '1.1';
 
 		$dependencies = array();
 
         $this->set_dependencies($dependencies);
+
+        $post_types = apply_filters('bbx_best_before_post_types_covered', array('post', 'page'));
+        $this->set_post_types_covered($post_types);
+		add_filter('piklist_part_process', array($this, 'set_metabox_post_types'), 10, 2);
 
 		add_action('init', array($this, 'frontend_hooks'));
 		add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
@@ -163,7 +164,7 @@ MULTI;
 		$today = date("Y-m-d");
 
 		$args = array(
-			'post_type' => $this->_post_types_to_covered,
+			'post_type' => $this->_post_types_to_cover,
 			'meta_key' => 'bbx_best_before_expiry_date',
 			'orderby'   => 'meta_value',
 			'order' => 'ASC',
@@ -189,20 +190,8 @@ MULTI;
 	 * @param $value
 	 * @access public
 	 */
-	public function set_post_types_covered( $value ) {
-		$this->_post_types_to_covered = $value;
-	}
-
-	/**
-	 * Set which post types are covered by Best Before functionality
-	 *
-	 * @param $value
-	 * @access public
-	 */
-	public function add_to_post_types_covered( $post_type ) {
-		if ( ! in_array( $post_type, $this->_post_types_to_covered ) ) {
-			$this->_post_types_to_covered[] = $post_type;
-		}
+	public function set_post_types_covered(array $value) {
+		$this->_post_types_to_cover = $value;
 	}
 
 	/**
@@ -213,6 +202,19 @@ MULTI;
 	 * @return array
 	 */
 	public function get_post_types_covered() {
-		return $this->_post_types_to_covered;
+		return $this->_post_types_to_cover;
+	}
+
+	/**
+	 * Make meta box visible on all covered post types
+	 * @param array $part
+	 * @param string $folder
+	 */
+	public function set_metabox_post_types($part, $folder) {
+	    if ($folder == 'meta-boxes' && $part['part'] == 'best-before.php') {
+    	    $part['data']['post_type'] = $this->get_post_types_covered();
+	    }
+
+	    return $part;
 	}
 }
