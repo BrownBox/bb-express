@@ -3,20 +3,17 @@
 namespace BrownBox\Express;
 
 class Express {
-
     /**
      * Contains list of addons
      *
      * @var array
      * @access private
      */
-    private $_addons = [];
+    private $_addons = array();
 
     public function __construct() {
-
         // Parse all existing plugins
         $this->_parse_addons();
-
     }
 
     /**
@@ -94,9 +91,6 @@ class Express {
      * @access public
      */
     public function get_all_addons() {
-
         return $this->_addons;
-
     }
-
 }

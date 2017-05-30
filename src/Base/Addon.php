@@ -9,7 +9,7 @@ class Addon {
      *
      * @var array
      */
-    protected $_dependencies = [];
+    protected $_dependencies = array();
 
     /**
      * Name of the addon
