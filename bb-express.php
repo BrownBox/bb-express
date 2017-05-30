@@ -3,7 +3,7 @@
 Plugin Name: BB Express
 Plugin URI: http://brownbox.net.au
 Description: Brown Box Express
-Version: 0.3.3
+Version: 0.3.4
 Author: Brown Box
 Author URI: http://brownbox.net.au
 License: GPL2
@@ -25,7 +25,7 @@ define( 'BB_EXPRESS_VENDOR_PIKLIST_PATH', BB_EXPRESS_VENDOR_PATH . '/piklist' );
 define( 'BB_EXPRESS_URL', plugin_dir_url( __FILE__ ) );
 define( 'BB_EXPRESS_SRC_URL', BB_EXPRESS_URL . 'src' );
 define( 'BB_EXPRESS_ADDONS_URL', BB_EXPRESS_SRC_URL . '/Addon' );
-define( 'BB_EXPRESS_VER', '0.3.3' );
+define( 'BB_EXPRESS_VER', '0.3.4' );
 define( 'BB_EXPRESS_BASENAME', plugin_basename( __FILE__ ) );
 
 // "src" directories
