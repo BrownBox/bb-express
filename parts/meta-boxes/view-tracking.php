@@ -34,10 +34,10 @@ foreach ($views as $time => $stats) {
         default:
             $title = 'All Time';
     }
-    $includes = $stats[Addon\ViewTracking::RECORD_TYPE_INCLUSION];
-    $views = $stats[Addon\ViewTracking::RECORD_TYPE_VIEWPORT];
-    $mouseovers = $stats[Addon\ViewTracking::RECORD_TYPE_MOUSEOVER];
-    $clicks = $stats[Addon\ViewTracking::RECORD_TYPE_CLICK];
+    $includes = (int)$stats[Addon\ViewTracking::RECORD_TYPE_INCLUSION];
+    $views = (int)$stats[Addon\ViewTracking::RECORD_TYPE_VIEWPORT];
+    $mouseovers = (int)$stats[Addon\ViewTracking::RECORD_TYPE_MOUSEOVER];
+    $clicks = (int)$stats[Addon\ViewTracking::RECORD_TYPE_CLICK];
 ?>
 <p class="bbx_stats_section_title"><?php echo $title; ?></h2>
 <div class="bbx_stats_tile">
