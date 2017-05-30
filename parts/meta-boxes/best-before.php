@@ -3,7 +3,7 @@
 namespace BrownBox\Express;
 
 /*
-Title: "Before Before" settings
+Title: "Best Before" settings
 Post Type: page, post
 Context: side
 Order: 12
@@ -30,20 +30,20 @@ $six_months = date( 'Y-m-d', strtotime("+6 months", $time_now ) );
 $nine_months = date( 'Y-m-d', strtotime("+9 months", $time_now ) );
 
 // Set up options for the bbx_best_before_expiry_presets dropdown
-$time_periods = [
-    '3-months' => date( 'Y-m-d', strtotime("+3 months", $time_now ) ),
-    '6-months' => date( 'Y-m-d', strtotime("+6 months", $time_now ) ),
-    '9-months' => date( 'Y-m-d', strtotime("+9 months", $time_now ) ),
-    'never' => "",
-];
+$time_periods = array(
+        '3-months' => date( 'Y-m-d', strtotime("+3 months", $time_now ) ),
+        '6-months' => date( 'Y-m-d', strtotime("+6 months", $time_now ) ),
+        '9-months' => date( 'Y-m-d', strtotime("+9 months", $time_now ) ),
+        'never' => "",
+);
 
 // Define meta fields -----------------------------------------------------------------------------------------------
 
 // Display the date until which the content is not considered stale
 piklist( 'field', array(
-    'type' => 'html',
-    'label' => '',
-    'value' => '<div class="callout"><p>The content of this post ' . $custom_text . '</span></p></div>',
+        'type' => 'html',
+        'label' => '',
+        'value' => '<div class="callout"><p>The content of this post ' . $custom_text . '</span></p></div>',
 ));
 
 $click_tiles_markup = <<<MULTI
@@ -59,38 +59,38 @@ MULTI;
 
 // Click tiles
 piklist( 'field', array(
-    'type' => 'html',
-    'field' => 'bbx_best_before_click_tiles',
-    'label' => 'Review in',
-    'value' => $click_tiles_markup,
+        'type' => 'html',
+        'field' => 'bbx_best_before_click_tiles',
+        'label' => 'Review in',
+        'value' => $click_tiles_markup,
 ));
 
 // OR
 piklist( 'field', array(
-    'type' => 'html',
-    'field' => 'bbx_best_before_or',
-    'label' => '',
-    'value' => '<h3 class="or">-OR-</h3>',
+        'type' => 'html',
+        'field' => 'bbx_best_before_or',
+        'label' => '',
+        'value' => '<h3 class="or">-OR-</h3>',
 ));
 
 // Expiry date
 piklist('field', array(
-    'type' => 'datepicker',
-    'field' => 'bbx_best_before_expiry_date',
-    'label' => 'Select a custom expiration date',
-    'value' => '',
-    'options' => array(
-        'dateFormat' => 'yy-mm-dd',
-        'minDate' => 1, // 1 day from today, i.e. tomorrow
-    ),
+        'type' => 'datepicker',
+        'field' => 'bbx_best_before_expiry_date',
+        'label' => 'Select a custom expiration date',
+        'value' => '',
+        'options' => array(
+                'dateFormat' => 'yy-mm-dd',
+                'minDate' => -1, // 1 day from today, i.e. tomorrow
+        ),
 ));
 
 piklist( 'field', array(
-    'type' => 'checkbox',
-    'field' => 'bbx_best_before_unpublish_when_expired',
-    'label' => 'Unpublish when expired',
-    'value' => '1',
-    'choices' => array(
-        '1' => 'Yes',
-    ),
+        'type' => 'checkbox',
+        'field' => 'bbx_best_before_unpublish_when_expired',
+        'label' => 'Unpublish when expired',
+        'value' => '1',
+        'choices' => array(
+                '1' => 'Yes',
+        ),
 ));
