@@ -81,7 +81,7 @@ piklist('field', array(
         'value' => '',
         'options' => array(
                 'dateFormat' => 'yy-mm-dd',
-                'minDate' => -1, // 1 day from today, i.e. tomorrow
+                'minDate' => 1, // 1 day from today, i.e. tomorrow
         ),
 ));
 
