@@ -611,9 +611,11 @@ function bbx_track_click(post_id) {
      * 1) Remove post IDs from inclusion views if they are also in the full post views
      */
     private function _clean_up_data() {
-        foreach ($this->_collected_data[self::RECORD_TYPE_FULL] as $post_id) {
-            if (isset($this->_collected_data[self::RECORD_TYPE_INCLUSION]) && ($key = array_search($post_id, $this->_collected_data[self::RECORD_TYPE_INCLUSION])) !== false) {
-                unset($this->_collected_data[self::RECORD_TYPE_INCLUSION][$key]);
+        if (isset($this->_collected_data[self::RECORD_TYPE_FULL])) {
+            foreach ($this->_collected_data[self::RECORD_TYPE_FULL] as $post_id) {
+                if (isset($this->_collected_data[self::RECORD_TYPE_INCLUSION]) && ($key = array_search($post_id, $this->_collected_data[self::RECORD_TYPE_INCLUSION])) !== false) {
+                    unset($this->_collected_data[self::RECORD_TYPE_INCLUSION][$key]);
+                }
             }
         }
     }
