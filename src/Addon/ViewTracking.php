@@ -700,6 +700,27 @@ function bbx_track_click(post_id) {
     }
 
     /**
+     * Identify the current user if possible
+     * @return WP_User|boolean WP_User object for user if successfully identified, otherwise false
+     */
+    public function identify_current_user() {
+        if (is_user_logged_in()) {
+            return new \WP_User(get_current_user_id());
+        }
+
+        $vt_user = $this->get_user_by($this->get_client_id());
+        if ($vt_user) {
+            if ($vt_user->user_id) {
+                return new \WP_User($vt_user->user_id);
+            } elseif ($vt_user->email) {
+                return get_user_by('email', $vt_user->email);
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Add user to tracking table
      * @param WP_User $user Optional if $email is specified
      * @param string $email Optional if $user is specified
