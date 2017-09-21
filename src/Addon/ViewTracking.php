@@ -589,6 +589,7 @@ function bbx_track_click(post_id) {
                     'date' => $result->created_at,
                     'user' => $user_name,
                     'user_id' => $view_user_id,
+                    'user_info' => $result->client_id,
                     'title' => $title,
                     'details' => $description,
                     'type' => 'activity',
