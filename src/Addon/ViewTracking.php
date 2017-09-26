@@ -187,7 +187,7 @@ class ViewTracking extends Base\Addon implements Interfaces\Addon {
         add_action('gform_after_submission', array($this, 'track_user'), 10, 2);
 
         if (is_admin()) {
-            add_filter('bbconnect_get_recent_activity', array($this, 'recent_activity'), 10, 2);
+            add_filter('bbconnect_get_recent_activity', array($this, 'recent_activity'), 10, 4);
         }
 
         // AJAX hooks
@@ -511,14 +511,33 @@ function bbx_track_click(post_id) {
      * Get list of recent activity to be displayed in Connexions Activity Log
      * @param array $activities
      * @param integer $user_id
+     * @param DateTime $from_datetime
+     * @param DateTime $to_datetime
      * @return array
      */
-    public function recent_activity(array $activities, $user_id) {
+    public function recent_activity(array $activities, $user_id, $from_datetime = null, $to_datetime = null) {
+        if (is_null($from_datetime)) {
+            $from_datetime = Helper\DateTime::get_datetime(strtotime('-6 days'));
+        }
+        if (is_null($to_datetime)) {
+            $to_datetime = Helper\DateTime::get_current_datetime();
+        }
         $gateway = new ViewTracking\ViewTrackingDB();
         $args = array(
                 'orderby' => 'created_at',
                 'order' => 'DESC',
-                'limit' => 500,
+                'filter' => array(
+                        array(
+                                'field' => 'created_at',
+                                'value' => $from_datetime->format('Y-m-d'),
+                                'op' => '>=',
+                        ),
+                        array(
+                                'field' => 'created_at',
+                                'value' => $to_datetime->format('Y-m-d').' 23:59:59',
+                                'op' => '<=',
+                        ),
+                ),
         );
 
         $grouped_users = array();

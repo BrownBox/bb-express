@@ -198,6 +198,14 @@ abstract class DB {
         $where_vars = array();
 
         foreach ($args['filter'] as $field => $value) {
+            $op = '=';
+            if (is_array($value)) {
+                $op = $value['op'];
+                if (!empty($value['field'])) {
+                    $field = $value['field']; // This way we can specify multiple filters for a single field
+                }
+                $value = $value['value'];
+            }
             if (is_numeric($value)) {
                 if (is_int($value)) {
                     $format = '%f';
@@ -207,7 +215,7 @@ abstract class DB {
             } else {
                 $format = '%s';
             }
-            $where_sql .= ' AND '.$field.' = '.$format;
+            $where_sql .= ' AND '.$field.' '.$op.' '.$format;
             $where_vars[] = $value;
         }
 
