@@ -71,7 +71,7 @@ class BestBefore extends Base\Addon implements Interfaces\Addon {
      * @since 1.0
      */
     public static function enqueue_admin_scripts() {
-        wp_enqueue_style( 'best-before-css', BB_EXPRESS_ADDONS_URL . '/BestBefore/css/best-before.css', array(), filemtime( BB_EXPRESS_ADDONS_URL . '/BestBefore/css/best-before.css' ) );
+        wp_enqueue_style( 'best-before-css', BB_EXPRESS_ADDONS_URL . '/BestBefore/css/best-before.css', array(), filemtime( BB_EXPRESS_ADDONS_PATH . '/BestBefore/css/best-before.css' ) );
         wp_enqueue_script( 'best-before-js', BB_EXPRESS_ADDONS_URL . '/BestBefore/js/best-before.js', array('jquery'), '0.0.1', true );
     }
 
