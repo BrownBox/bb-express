@@ -537,6 +537,11 @@ function bbx_track_click(post_id) {
                                 'value' => $to_datetime->format('Y-m-d').' 23:59:59',
                                 'op' => '<=',
                         ),
+                        array(
+                                'field' => 'view_type',
+                                'value' => self::RECORD_TYPE_FULL,
+                                'op' => '=',
+                        ),
                 ),
         );
 
@@ -566,17 +571,15 @@ function bbx_track_click(post_id) {
 
         $results = $gateway->get_rows($args);
 
+        $posts = array();
+        $post_types = array();
         foreach ($results as $result) {
-            switch ($result->view_type) {
-                case self::RECORD_TYPE_FULL:
-                    $post_type = get_post_type_object(get_post_type($result->item_id))->labels->singular_name;
-                    $title = $post_type.': '.get_the_title($result->item_id);
-                    $description = '<a href="'.get_the_permalink($result->item_id).'" target="_blank">View '.$post_type.'</a>';
-                    break;
-                default: // Don't include other types
-                    continue(2);
-                    break;
+            if (!isset($posts[$result->item_id])) {
+                $posts[$result->item_id] = get_post($result->item_id);
+                $post_types[$result->item_id] = get_post_type_object(get_post_type($posts[$result->item_id]))->labels->singular_name;
             }
+            $title = $post_types[$result->item_id].': '.get_the_title($posts[$result->item_id]);
+            $description = '<a href="'.get_the_permalink($posts[$result->item_id]).'" target="_blank">View '.$post_types[$result->item_id].'</a>';
 
             if (count($grouped_users[$result->client_id]) == 0) {
                 $user_name = 'Anonymous User';
