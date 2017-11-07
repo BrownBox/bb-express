@@ -223,9 +223,9 @@ abstract class DB {
             $order_sql = ' ORDER BY '.$args['orderby'].' '.$args['order'];
         }
 
-        if (is_numeric($args['limit']) && $args['limit'] > 0) {
+        if (isset($args['limit']) && is_numeric($args['limit']) && $args['limit'] > 0) {
             $limit_sql = ' LIMIT '.$args['limit'];
-            if (is_numeric($args['offset']) && $args['offset'] > 0) {
+            if (isset($args['offset']) && is_numeric($args['offset']) && $args['offset'] > 0) {
                 $limit_sql = ' OFFSET '.$args['offset'];
             }
         }
