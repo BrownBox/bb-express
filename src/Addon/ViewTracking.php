@@ -186,9 +186,7 @@ class ViewTracking extends Base\Addon implements Interfaces\Addon {
         add_action('wp', array($this, 'conversion_cookie'));
         add_action('gform_after_submission', array($this, 'track_user'), 10, 2);
 
-        if (is_admin()) {
-            add_filter('bbconnect_get_recent_activity', array($this, 'recent_activity'), 10, 4);
-        }
+        add_filter('bbconnect_update_activity_log', array($this, 'recent_activity'));
 
         // AJAX hooks
         add_action('wp_ajax_bbx_track_view', array($this, 'ajax_track_view'));
@@ -510,51 +508,28 @@ function bbx_track_click(post_id) {
     /**
      * Get list of recent activity to be displayed in Connexions Activity Log
      * @param array $activities
-     * @param integer $user_id
-     * @param DateTime $from_datetime
-     * @param DateTime $to_datetime
      * @return array
      */
-    public function recent_activity(array $activities, $user_id, $from_datetime = null, $to_datetime = null) {
-        if (is_null($from_datetime)) {
-            $from_datetime = Helper\DateTime::get_datetime(strtotime('-6 days'));
-        }
-        if (is_null($to_datetime)) {
-            $to_datetime = Helper\DateTime::get_current_datetime();
-        }
+    public function recent_activity($activities) {
+        global $wpdb;
+        $latest = $wpdb->get_var('SELECT MAX(external_id) FROM '.$wpdb->prefix.'bbconnect_activity_log WHERE external_ref = "bbx_views"');
         $gateway = new ViewTracking\ViewTrackingDB();
         $args = array(
-                'orderby' => 'created_at',
-                'order' => 'DESC',
-                'filter' => array(
-                        array(
-                                'field' => 'created_at',
-                                'value' => $from_datetime->format('Y-m-d'),
-                                'op' => '>=',
-                        ),
-                        array(
-                                'field' => 'created_at',
-                                'value' => $to_datetime->format('Y-m-d').' 23:59:59',
-                                'op' => '<=',
-                        ),
-                        array(
-                                'field' => 'view_type',
-                                'value' => self::RECORD_TYPE_FULL,
-                                'op' => '=',
-                        ),
-                ),
+                'orderby' => 'view_tracking_id',
+                'order' => 'ASC',
         );
+        if ($latest) {
+            $args['filter'] = array(
+                    array(
+                            'field' => 'view_tracking_id',
+                            'value' => $latest,
+                            'op' => '>',
+                    ),
+            );
+        }
 
         $grouped_users = array();
-        if ($user_id) {
-            $vt_users = array();
-            $tmp_users = $this->get_user_by($user_id, 'user_id', false);
-            foreach ($tmp_users as $tmp_user) {
-                $vt_users += $this->get_user_by($tmp_user->client_id, 'client_id', false);
-            }
-        } else {
-            $vt_users = $this->get_users();
-        }
+        $vt_users = $this->get_users();
         usort($vt_users, array($this, 'sort_users_by_created'));
 
         foreach ($vt_users as $vt_user) {
@@ -581,7 +556,7 @@ function bbx_track_click(post_id) {
             $title = $post_types[$result->item_id].': '.get_the_title($posts[$result->item_id]);
             $description = '<a href="'.get_the_permalink($posts[$result->item_id]).'" target="_blank">View '.$post_types[$result->item_id].'</a>';
 
-            if (count($grouped_users[$result->client_id]) == 0) {
+            if (!isset($grouped_users[$result->client_id]) || count($grouped_users[$result->client_id]) == 0) {
                 $user_name = 'Anonymous User';
                 $view_user_id = null;
             } elseif (count($grouped_users[$result->client_id]) == 1) {
@@ -603,18 +578,16 @@ function bbx_track_click(post_id) {
                 $view_user_id = $view_user->ID;
             }
 
-            if ($user_id && $view_user_id != $user_id) { // Make sure we're only showing entries for the current user where relevant
-                continue;
-            }
-
             $activities[] = array(
-                    'date' => $result->created_at,
+                    'created_at' => $result->created_at,
                     'user' => $user_name,
                     'user_id' => $view_user_id,
                     'user_info' => $result->client_id,
                     'title' => $title,
                     'details' => $description,
-                    'type' => 'activity',
+                    'type' => 'view',
+                    'external_id' => $result->view_tracking_id,
+                    'external_ref' => 'bbx_views',
             );
         }
         return $activities;
@@ -727,20 +700,22 @@ function bbx_track_click(post_id) {
      * @return WP_User|boolean WP_User object for user if successfully identified, otherwise false
      */
     public function identify_current_user() {
+        $user = false;
         if (is_user_logged_in()) {
-            return new \WP_User(get_current_user_id());
-        }
-
-        $vt_user = $this->get_user_by($this->get_client_id());
-        if ($vt_user) {
-            if ($vt_user->user_id) {
-                return new \WP_User($vt_user->user_id);
-            } elseif ($vt_user->email) {
-                return get_user_by('email', $vt_user->email);
+            $user = new \WP_User(get_current_user_id());
+        } else {
+            $vt_user = $this->get_user_by($this->get_client_id());
+            if ($vt_user) {
+                if ($vt_user->user_id) {
+                    $user = new \WP_User($vt_user->user_id);
+                } elseif ($vt_user->email) {
+                    $user = get_user_by('email', $vt_user->email);
+                }
             }
         }
+        do_action('bb_express_identify_user', $user, $this->get_client_id());
 
-        return false;
+        return $user;
     }
 
     /**
@@ -761,7 +736,15 @@ function bbx_track_click(post_id) {
                 'email' => $email,
                 'created_at' => $now->format('Y-m-d H:i:s'),
         );
-        return $wpdb->insert($wpdb->prefix.'bbx_view_tracking_users', $data, array('%s', '%d', '%s', '%s'));
+        $success = $wpdb->insert($wpdb->prefix.'bbx_view_tracking_users', $data, array('%s', '%d', '%s', '%s'));
+        if ($success) {
+            if (!($user instanceof \WP_User)) {
+                $user = get_user_by('email', $email);
+            }
+            do_action('bb_express_identify_user', $user, $this->get_client_id());
+        }
+
+        return $success;
     }
 
     /**
@@ -797,6 +780,6 @@ function bbx_track_click(post_id) {
     }
 
     private function sort_users_by_created($a, $b) {
-        return $a->created_by > $b->created_by ? 1 : -1;
+        return $a->created_at > $b->created_at ? 1 : -1;
     }
 }
