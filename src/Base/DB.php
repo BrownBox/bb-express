@@ -223,10 +223,10 @@ abstract class DB {
             $order_sql = ' ORDER BY '.$args['orderby'].' '.$args['order'];
         }
 
-        if (isset($args['limit']) && is_numeric($args['limit']) && $args['limit'] > 0) {
-            $limit_sql = ' LIMIT '.$args['limit'];
+        if (isset($args['number']) && is_numeric($args['number']) && $args['number'] > 0) {
+            $limit_sql .= ' LIMIT '.$args['number'];
             if (isset($args['offset']) && is_numeric($args['offset']) && $args['offset'] > 0) {
-                $limit_sql = ' OFFSET '.$args['offset'];
+                $limit_sql .= ' OFFSET '.$args['offset'];
             }
         }
 
