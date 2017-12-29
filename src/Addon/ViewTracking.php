@@ -189,12 +189,12 @@ class ViewTracking extends Base\Addon implements Interfaces\Addon {
         add_filter('bbconnect_update_activity_log', array($this, 'recent_activity'));
 
         // AJAX hooks
-        add_action('wp_ajax_bbx_track_view', array($this, 'ajax_track_view'));
-        add_action('wp_ajax_nopriv_bbx_track_view', array($this, 'ajax_track_view'));
-        add_action('wp_ajax_bbx_track_mouseover', array($this, 'ajax_track_mouseover'));
-        add_action('wp_ajax_nopriv_bbx_track_mouseover', array($this, 'ajax_track_mouseover'));
-        add_action('wp_ajax_bbx_track_click', array($this, 'ajax_track_click'));
-        add_action('wp_ajax_nopriv_bbx_track_click', array($this, 'ajax_track_click'));
+//         add_action('wp_ajax_bbx_track_view', array($this, 'ajax_track_view'));
+//         add_action('wp_ajax_nopriv_bbx_track_view', array($this, 'ajax_track_view'));
+//         add_action('wp_ajax_bbx_track_mouseover', array($this, 'ajax_track_mouseover'));
+//         add_action('wp_ajax_nopriv_bbx_track_mouseover', array($this, 'ajax_track_mouseover'));
+//         add_action('wp_ajax_bbx_track_click', array($this, 'ajax_track_click'));
+//         add_action('wp_ajax_nopriv_bbx_track_click', array($this, 'ajax_track_click'));
     }
 
     /**
@@ -207,8 +207,8 @@ class ViewTracking extends Base\Addon implements Interfaces\Addon {
             add_action('pre_get_posts', array($this, 'pre_get_posts_filter'));
             add_filter('posts_results', array($this, 'posts_results_filter'));
             add_action('shutdown', array($this, 'process_collected_data'));
-            add_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'));
-            add_action('wp_footer', array($this, 'footer_scripts'));
+//             add_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'));
+//             add_action('wp_footer', array($this, 'footer_scripts'));
         }
     }
 
@@ -544,52 +544,60 @@ function bbx_track_click(post_id) {
             );
         }
 
-        $results = $gateway->get_rows($args);
+        $offset = 0;
+        $page_size = 100;
+        do {
+            $args['number'] = $page_size;
+            $args['offset'] = $offset;
+            $results = $gateway->get_rows($args);
 
-        $posts = array();
-        $post_types = array();
-        foreach ($results as $result) {
-            if (!isset($posts[$result->item_id])) {
-                $posts[$result->item_id] = get_post($result->item_id);
-                $post_types[$result->item_id] = get_post_type_object(get_post_type($posts[$result->item_id]))->labels->singular_name;
-            }
-            $title = $post_types[$result->item_id].': '.get_the_title($posts[$result->item_id]);
-            $description = '<a href="'.get_the_permalink($posts[$result->item_id]).'" target="_blank">View '.$post_types[$result->item_id].'</a>';
+            $posts = array();
+            $post_types = array();
+            foreach ($results as $result) {
+                if (!isset($posts[$result->item_id])) {
+                    $posts[$result->item_id] = get_post($result->item_id);
+                    $post_types[$result->item_id] = get_post_type_object(get_post_type($posts[$result->item_id]))->labels->singular_name;
+                }
+                $title = $post_types[$result->item_id].': '.get_the_title($posts[$result->item_id]);
+                $description = '<a href="'.get_the_permalink($posts[$result->item_id]).'" target="_blank">View '.$post_types[$result->item_id].'</a>';
 
-            if (!isset($grouped_users[$result->client_id]) || count($grouped_users[$result->client_id]) == 0) {
-                $user_name = 'Anonymous User';
-                $view_user_id = null;
-            } elseif (count($grouped_users[$result->client_id]) == 1) {
-                $view_user = $grouped_users[$result->client_id][0]['user'];
-                $user_name = $view_user->display_name;
-                $view_user_id = $view_user->ID;
-            } else { // Multiple matches - find the best match
-                foreach ($grouped_users[$result->client_id] as $tmp_user) {
-                    if (!isset($view_user)) { // If it's the earliest record we've got, go with that until we find a closer match
+                if (!isset($grouped_users[$result->client_id]) || count($grouped_users[$result->client_id]) == 0) {
+                    $user_name = 'Anonymous User';
+                    $view_user_id = null;
+                } elseif (count($grouped_users[$result->client_id]) == 1) {
+                    $view_user = $grouped_users[$result->client_id][0]['user'];
+                    $user_name = $view_user->display_name;
+                    $view_user_id = $view_user->ID;
+                } else { // Multiple matches - find the best match
+                    foreach ($grouped_users[$result->client_id] as $tmp_user) {
+                        if (!isset($view_user)) { // If it's the earliest record we've got, go with that until we find a closer match
+                            $view_user = $tmp_user['user'];
+                        }
+                        if (strtotime($result->created_at) < strtotime($tmp_user['date'])) { // User record was created after this view, we've gone too far
+                            break;
+                        }
+                        // User record was created before view, so it's closer than any other matches we may have found previously
                         $view_user = $tmp_user['user'];
                     }
-                    if (strtotime($result->created_at) < strtotime($tmp_user['date'])) { // User record was created after this view, we've gone too far
-                        break;
-                    }
-                    // User record was created before view, so it's closer than any other matches we may have found previously
-                    $view_user = $tmp_user['user'];
+                    $user_name = $view_user->display_name;
+                    $view_user_id = $view_user->ID;
                 }
-                $user_name = $view_user->display_name;
-                $view_user_id = $view_user->ID;
-            }
 
-            $activities[] = array(
-                    'created_at' => $result->created_at,
-                    'user' => $user_name,
-                    'user_id' => $view_user_id,
-                    'user_info' => $result->client_id,
-                    'title' => $title,
-                    'details' => $description,
-                    'type' => 'view',
-                    'external_id' => $result->view_tracking_id,
-                    'external_ref' => 'bbx_views',
-            );
-        }
+                $activities[] = array(
+                        'created_at' => $result->created_at,
+                        'user' => $user_name,
+                        'user_id' => $view_user_id,
+                        'user_info' => $result->client_id,
+                        'title' => $title,
+                        'details' => $description,
+                        'type' => 'view',
+                        'external_id' => $result->view_tracking_id,
+                        'external_ref' => 'bbx_views',
+                );
+            }
+            $offset += $page_size;
+        } while (count($results) > 0 && count($activities) < 5000);
+
         return $activities;
     }
 
