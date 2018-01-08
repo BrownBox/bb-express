@@ -60,6 +60,14 @@ class ViewTracking extends Base\Addon implements Interfaces\Addon {
     );
 
     /**
+     * Browser user-agent string
+     *
+     * @var null|string
+     * @access protected
+     */
+    protected $_user_agent = null;
+
+    /**
      * Name of conversion tracking cookie
      * @const string
      */
@@ -115,9 +123,10 @@ class ViewTracking extends Base\Addon implements Interfaces\Addon {
 
         $this->_name = __('View Tracking', 'bb');
         $this->_description = __('Track views of various posts.', 'bb');
-        $this->_current_version = '1.2';
+        $this->_current_version = '1.3';
         $this->_referer = $_SERVER['HTTP_REFERER'];
         $this->_ip_address = $_SERVER['REMOTE_ADDR'];
+        $this->_user_agent = $_SERVER['HTTP_USER_AGENT'];
         $this->_request_reference = md5(time().rand(1, 10000).$this->_ip_address);
 
         $dependencies = array();
@@ -177,6 +186,10 @@ class ViewTracking extends Base\Addon implements Interfaces\Addon {
                 ),
                 '1.2' => array(
                         $wpdb->prefix.'bbx_view_tracking' => "UPDATE ".$wpdb->prefix."bbx_view_tracking SET created_at = DATE_ADD(created_at, INTERVAL 10 HOUR);",
+                ),
+                '1.3' => array(
+                        $wpdb->prefix.'bbx_view_tracking' => "ALTER TABLE ".$wpdb->prefix."bbx_view_tracking ADD user_agent VARCHAR(128) AFTER client_id;",
+                        $wpdb->prefix.'bbx_view_tracking_archive' => "ALTER TABLE ".$wpdb->prefix."bbx_view_tracking_archive ADD user_agent VARCHAR(128) AFTER client_id;",
                 ),
         );
         $this->set_database_tables_queries($queries);
@@ -500,6 +513,7 @@ function bbx_track_click(post_id) {
                 'session_id'        => session_id(),
                 'client_id'         => $this->get_client_id(),
                 'created_at'        => $now->format('Y-m-d H:i:s'),
+                'user_agent'        => $this->_user_agent,
         );
 
         $result = $gateway->insert($row_data);
