@@ -182,8 +182,10 @@ class ViewTracking extends Base\Addon implements Interfaces\Addon {
         $this->set_database_tables_queries($queries);
         $this->install();
 
-        add_action('wp', array($this, 'frontend_hooks'));
-        add_action('wp', array($this, 'conversion_cookie'));
+        if (!Helper\UserAgent::is_bot()) { // Don't track views for bots
+            add_action('wp', array($this, 'frontend_hooks'));
+            add_action('wp', array($this, 'conversion_cookie'));
+        }
         add_action('gform_after_submission', array($this, 'track_user'), 10, 2);
 
         add_filter('bbconnect_update_activity_log', array($this, 'recent_activity'));
