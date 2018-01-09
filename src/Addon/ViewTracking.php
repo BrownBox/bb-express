@@ -202,6 +202,7 @@ class ViewTracking extends Base\Addon implements Interfaces\Addon {
         add_action('gform_after_submission', array($this, 'track_user'), 10, 2);
 
         add_filter('bbconnect_update_activity_log', array($this, 'recent_activity'));
+        add_filter('bbconnect_activity_types', array($this, 'activity_types'));
 
         // AJAX hooks
 //         add_action('wp_ajax_bbx_track_view', array($this, 'ajax_track_view'));
@@ -519,6 +520,11 @@ function bbx_track_click(post_id) {
         $result = $gateway->insert($row_data);
 
         return $result;
+    }
+
+    public function activity_types($types) {
+        $types['view'] = 'View Content';
+        return $types;
     }
 
     /**
