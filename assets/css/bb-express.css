@@ -17,3 +17,30 @@
 }
 
 /* END: UI Components */
+
+.inside .no {
+   background-color: rgba(200,10,50,0.05);
+   display: block;
+   margin: 0;
+   color: rgba(150,10,50,1);
+   padding: 0.2rem 0 0.05rem 0;
+   font-size: 0.7rem;
+   border-bottom: 1px solid #fff;
+}
+.inside .yes {
+   background-color: rgba(0,200,50,0.05);
+   display: block;
+   margin: 0;
+   color: rgba(0,100,50,1);
+   padding: 0.2rem 0 0.05rem 0;
+   font-size: 0.7rem;
+   border-bottom: 1px solid #fff;
+} 
+.inside p.summary > span {
+    display: inline-block;
+    width: 80px;
+    text-align: right;
+    padding-right: 0.5rem;
+    opacity: 0.5;
+    font-size: 0.7rem;
+}

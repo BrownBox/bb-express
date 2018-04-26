@@ -3,7 +3,7 @@
 Plugin Name: BB Express
 Plugin URI: http://brownbox.net.au
 Description: Brown Box Express
-Version: 0.3.11
+Version: 0.4
 Author: Brown Box
 Author URI: http://brownbox.net.au
 License: GPL2
@@ -25,7 +25,7 @@ define( 'BB_EXPRESS_VENDOR_PIKLIST_PATH', BB_EXPRESS_VENDOR_PATH . '/piklist' );
 define( 'BB_EXPRESS_URL', plugin_dir_url( __FILE__ ) );
 define( 'BB_EXPRESS_SRC_URL', BB_EXPRESS_URL . 'src' );
 define( 'BB_EXPRESS_ADDONS_URL', BB_EXPRESS_SRC_URL . '/Addon' );
-define( 'BB_EXPRESS_VER', '0.3.11' );
+define( 'BB_EXPRESS_VER', '0.4' );
 define( 'BB_EXPRESS_BASENAME', plugin_basename( __FILE__ ) );
 
 // "src" directories
@@ -33,10 +33,11 @@ define( 'BB_EXPRESS_ADDONS_PATH', BB_EXPRESS_SRC_PATH . '/Addon' );
 define( 'BB_EXPRESS_DEPENDENCY_PATH', BB_EXPRESS_SRC_PATH . '/Dependency' );
 
 require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-require_once BB_EXPRESS_PATH . '/bb-express-scripts.php';
+require_once BB_EXPRESS_PATH . 'bb-express-scripts.php';
 // require_once BB_EXPRESS_VENDOR_PIKLIST_PATH . '/piklist.php';
 
-require_once BB_EXPRESS_PATH . '/bb-express-hooks.php';
+require_once BB_EXPRESS_PATH . 'bb-express-hooks.php';
+require_once BB_EXPRESS_PATH . 'meta/smart-meta-box.php';
 
 
 // Register an autoloader
