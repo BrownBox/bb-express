@@ -88,7 +88,11 @@ function metabox_content_analysis( $post ) {
     if ( false === $results = get_transient( 'bb_content_analysis_'.$post->ID )) {
 
         //$post_types = get_all_post_type();
-        $meta = bb_get_post_meta($post->ID);
+        if (function_exists('bb_get_post_meta')) {
+            $meta = bb_get_post_meta($post->ID);
+        } else {
+            $meta = array_map(function($n) {return $n[0];}, get_post_meta($post->ID));
+        }
 
         if($post->post_status !== 'auto-draft' && strlen($post->post_name) > $min) {
 
