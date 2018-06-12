@@ -204,6 +204,8 @@ class ViewTracking extends Base\Addon implements Interfaces\Addon {
         add_filter('bbconnect_update_activity_log', array($this, 'recent_activity'));
         add_filter('bbconnect_activity_types', array($this, 'activity_types'));
 
+        add_action('bbconnect_merge_users', array($this, 'merge_users'), 10, 2);
+
         // AJAX hooks
 //         add_action('wp_ajax_bbx_track_view', array($this, 'ajax_track_view'));
 //         add_action('wp_ajax_nopriv_bbx_track_view', array($this, 'ajax_track_view'));
@@ -811,5 +813,18 @@ function bbx_track_click(post_id) {
 
     private function sort_users_by_created($a, $b) {
         return $a->created_at > $b->created_at ? 1 : -1;
+    }
+
+    public function merge_users($to_user, $old_user) {
+        global $wpdb;
+        $user = new WP_User($to_user);
+        $data = array(
+                'user_id' => $to_user,
+                'email' => $user->user_email,
+        );
+        $where = array(
+                'user_id' => $old_user->ID,
+        );
+        $wpdb->update($wpdb->prefix.'bbx_view_tracking_users', $data, $where, array('%d'), array('%d'));
     }
 }
