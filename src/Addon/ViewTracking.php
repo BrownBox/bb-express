@@ -817,7 +817,7 @@ function bbx_track_click(post_id) {
 
     public function merge_users($to_user, $old_user) {
         global $wpdb;
-        $user = new WP_User($to_user);
+        $user = new \WP_User($to_user);
         $data = array(
                 'user_id' => $to_user,
                 'email' => $user->user_email,
