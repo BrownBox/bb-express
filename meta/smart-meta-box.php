@@ -1,17 +1,4 @@
 <?php
-// include('classes/cpt_.php');
-// include('classes/meta_.php');
-// include('classes/tax_.php');
-
-// add_action('admin_init', 'get_all_post_type');
-// function get_all_post_type(){
-//     $args = array(
-//             'public' => true,
-//     );
-//     $post_types = get_post_types($args, 'object', 'and');
-//     return $post_types;
-// }
-
 function post_metabox() {
     $exclude = ( null !== SMARTBOX_EXCLUDE ) ? unserialize(SMARTBOX_EXCLUDE) : array();
 
@@ -24,7 +11,6 @@ function post_metabox() {
 
     // metabox_has_children & metabox_has_parent
     if( is_post_type_hierarchical($post->post_type) ) {
-
         // metabox_has_children
         if( !in_array($post->post_type, $exclude['metabox_has_children'])) {
             if ( false === $children = get_transient( 'bb_has_children_'.$post->ID )) {
@@ -52,7 +38,6 @@ function post_metabox() {
             }
         }
     }
-
 }
 add_action( 'add_meta_boxes', 'post_metabox' );
 
@@ -80,14 +65,9 @@ function metabox_has_children($post){
 
 
 function metabox_content_analysis( $post ) {
-
     $min = 2;
 
-    //delete_transient('bb_content_analysis_'.$post->ID);
-    //$results = get_transient( 'bb_content_analysis_'.$post->ID );
     if ( false === $results = get_transient( 'bb_content_analysis_'.$post->ID )) {
-
-        //$post_types = get_all_post_type();
         if (function_exists('bb_get_post_meta')) {
             $meta = bb_get_post_meta($post->ID);
         } else {
@@ -95,7 +75,6 @@ function metabox_content_analysis( $post ) {
         }
 
         if($post->post_status !== 'auto-draft' && strlen($post->post_name) > $min) {
-
             $args = array(
                     'posts_per_page'   => -1,
                     'post_type'        => $post->post_type,
@@ -180,7 +159,6 @@ function metabox_content_analysis( $post ) {
             // BB Hero Meta tests
             $hero_post_types = array('page','project');
             if(in_array($post->post_type, $hero_post_types)){
-
                 // BB Hero Meta Image Large
                 $count++;
                 $results[$count]['name'] = 'Has <span>Default Hero Image</span>';
@@ -188,7 +166,6 @@ function metabox_content_analysis( $post ) {
                 if($results[$count]['result'] == 'no') $results['fails']++;
                 $results[$count]['markup'] = '<p class="'.$results[$count]['result'].'"><span class="dashicons dashicons-'.$results[$count]['result'].'"></span>'.$results[$count]['name'].'</p>';
                 // End Test
-
 
                 // BB Hero Meta Image Medium
                 $count++;
@@ -198,21 +175,16 @@ function metabox_content_analysis( $post ) {
                 $results[$count]['markup'] = '<p class="'.$results[$count]['result'].'"><span class="dashicons dashicons-'.$results[$count]['result'].'"></span>'.$results[$count]['name'].'</p>';
                 // End Test
 
-
-            // BB Hero Meta Image Small
+                // BB Hero Meta Image Small
                 $count++;
                 $results[$count]['name'] = 'Has <span>Small Hero Image</span>';
                 $results[$count]['result'] = (!empty($meta['hero_image_small'])) ? 'yes' : 'no';
                 if($results[$count]['result'] == 'no') $results['fails']++;
                 $results[$count]['markup'] = '<p class="'.$results[$count]['result'].'"><span class="dashicons dashicons-'.$results[$count]['result'].'"></span>'.$results[$count]['name'].'</p>';
                 // End Test
-
             }
-
-        set_transient('bb_content_analysis_'.$post->ID, $results, 30 * DAY_IN_SECONDS);
-
+            set_transient('bb_content_analysis_'.$post->ID, $results, 30 * DAY_IN_SECONDS);
         }
-
     }
 
     if($post->post_status !== 'auto-draft' && strlen($post->post_name) > $min) {
@@ -225,8 +197,6 @@ function metabox_content_analysis( $post ) {
         echo '<p>Not yet tested - Please publish the post</p>';
         delete_transient('bb_content_analysis_'.$post->ID);
     }
-
-
 }
 
 add_action( 'save_post', 'reanalyse_content' );
@@ -237,7 +207,6 @@ function reanalyse_content( $post_id ) {
 }
 
 function bb_content_analysis_add_dashboard_widgets() {
-
     wp_add_dashboard_widget(
             'bb_content_analysis_dashboard_widget',         // Widget slug.
             'BB Content Analysis',         // Title.
@@ -250,18 +219,21 @@ add_action( 'wp_dashboard_setup', 'bb_content_analysis_add_dashboard_widgets' );
  * Create the function to output the contents of our Dashboard Widget.
  */
 function bb_content_analysis_dashboard_widget_function() {
-
     echo '<style>.value {display: inline-block;width: 20px;text-align: right;}</style>';
 
     // Display whatever it is you want to show.
-    $transients = BB_Transients::get('bb_content_analysis_');
+    global $wpdb;
+    $sql = "SELECT `option_name` AS `name`, `option_value` AS `value`
+        FROM $wpdb->options
+        WHERE `option_name` LIKE '%transient_bb_content_analysis_%'
+            AND NOT `option_name` LIKE '%transient_timeout%'
+        ORDER BY `option_name`";
+    $transients = $wpdb->get_results($sql);
+
     $summary = array();
     $summary['count'] = 0;
     foreach ($transients as $transient){
-        //var_dump(str_replace('_transient_', '', $transient->name));
-        //if($_GET['bb_content_analysis_'] == false) delete_transient(str_replace('_transient_', '', $transient->name));
         $array = unserialize($transient->value);
-
         foreach ($array as $data){
             if($data["result"] == 'no' && !empty($summary[$data["name"]])) {
                 $summary[$data["name"]]++;
@@ -275,14 +247,9 @@ function bb_content_analysis_dashboard_widget_function() {
     }
     foreach($summary as $key => $value){
         if( $key == 'count' ) {
-            $count = $value / 2;
-            echo '<strong><span class="value">'.$count.'</span> Pages Tested</strong><br>';
+            echo '<strong><span class="value">'.$value.'</span> Pages Tested</strong><br>';
         } else {
             echo '<span class="value">'.$value.'</span> pages failed "'.$key.'"<br>';
         }
-
     }
 }
-
-
-
